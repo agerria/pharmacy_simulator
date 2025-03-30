@@ -1,0 +1,158 @@
+@startuml
+
+' Основные бизнес-классы
+class Customer {
+  + name: str
+  + phone: str
+  + address: str
+  + discount_card: bool
+  + regular_medicines: dict[Medicine, int]
+  + regularity: int
+  + generate_customer(): Customer
+  + generate_regular_customer(medicines : list[Medicine]): Customer
+}
+
+class Medicine {
+  + name: str
+  + dosage: int
+  + type: MedicineType
+  + group: MedicineGroup
+  + wholesale: float
+  + expiration_days: int
+  + purchase_quantity: int
+  + min_quantity: int
+}
+
+class BatchOfMedicines {
+  + count: int
+  + expiration_days: int
+  + is_discounted: bool
+  + is_expired: bool
+  + is_empty: bool
+  + sell(cnt: int): int
+}
+
+class WarehouseMedicineOrder {
+    + count: int
+    + cost: float
+}
+
+class WarehouseMedicine {
+  + medicine: Medicine
+  + batches: list[BatchOfMedicines]
+  + count: int
+  + awaiting_batch: BatchOfMedicines
+  + awaiting_days: int
+  + sell(cnt: int) : WarehouseMedicineOrder
+  + has_discounted(): bool
+}
+
+class Warehouse {
+  + medicines: dict[Medicine, WarehouseMedicine]
+  + process_order(order: Order)
+}
+
+class Order {
+  + customer: Customer
+  + requested_medicines: dict[Medicine, int]
+  + status: OrderStatus
+  + type: OrderType
+  + preliminary_reciept: WarehouseMedicineOrder
+  + summary: float
+  + is_delivered: bool
+  + is_regular: bool
+  + set_preliminary_reciept(preliminary_reciept : WarehouseMedicineOrder)
+  + set_summary(summary : float)
+  + create_regular_order(customer : Customer): Order
+}
+
+class PayMaster {
+  + retail_margin: float
+  + card_discount: float
+  + regular_discount: float
+  + discount: float
+  + discount_threshold: float
+  + max_discount: float
+  + count_summary(order: Order): float
+}
+
+class Pharmacy {
+  + warehouse: Warehouse
+  + paymaster: PayMaster
+  + regular_customers: list[Customer]
+  + couriers: int
+  + orders: list[Order]
+  + add_regular_orders(day : int)
+  + add_ordes(orders : list[Order])
+  + deliver_orders()
+  + process_day(day : int, orders : list[Order]): PharmacyDayStatistics
+}
+
+class SimulationParams {
+    + days: int
+    + couriers: int
+    + retail_margin: float
+    + card_discount: float
+    + base_orders: int
+    + sensitivity: float
+    + order_intensity: float
+}
+
+class Simulation {
+    + params: SimulationParams
+    + pharmacy: Pharmacy
+    + generate_orders(): list[Order]
+    + run() :list[PharmacyDayStatistics]
+}
+
+class PharmacyDayStatistics {
+    + day: int,
+    + revenue: float
+    + profit: float
+    + losses: float
+    + orders: list[Order]
+    + warehouse: Warehouse
+}
+
+
+class MainWindow {
+  + sim: Simulation
+  + init_ui()
+  + start_simulation()
+  + update_visualization()
+}
+
+' Отношения бизнес-логики
+Customer "1" *-- "0..*" Medicine : regular_medicines
+WarehouseMedicine --> WarehouseMedicineOrder
+
+Customer --> Customer
+Order --> Order
+Order "1" *-- "1" WarehouseMedicineOrder
+Warehouse "1" *-- "1..*" Medicine : medicines
+
+WarehouseMedicine "1" *-- "1" Medicine
+WarehouseMedicine "1" *-- "1..*" BatchOfMedicines
+Warehouse "1" *-- "1..*" WarehouseMedicine
+
+Order "1" *-- "1" Customer
+Order "1" *-- "1..*" Medicine : requested_medicines
+
+Simulation "1" *-- "1" SimulationParams
+Simulation "1" *-- "1" Pharmacy
+
+Pharmacy "1" *-- "1" Warehouse
+Pharmacy "1" *-- "1" PayMaster
+Pharmacy "1" *-- "0..*" Customer : regular_customers
+Pharmacy "1" *-- "0..*" Order : orders
+Pharmacy --> PharmacyDayStatistics
+PharmacyDayStatistics "1" *-- "0..*" Order : orders
+PharmacyDayStatistics "1" *-- "1" Warehouse
+
+' Отношения UI
+MainWindow "1" *-- "1" Simulation
+
+' Связи между бизнес-логикой и UI
+/'MainWindow "1" *-- "0..*" PharmacyDayStatistics'/
+
+@enduml
