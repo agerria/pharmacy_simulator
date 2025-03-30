@@ -2,17 +2,17 @@
 
 
 from PyQt5.QtWidgets import (
-    QApplication, 
-    QMainWindow, 
-    QWidget, 
+    QApplication,
+    QMainWindow,
+    QWidget,
     QTabWidget,
-    QVBoxLayout, 
-    QFormLayout, 
-    QGroupBox, 
+    QVBoxLayout,
+    QFormLayout,
+    QGroupBox,
     QPushButton,
-    QLabel, 
-    QSpinBox, 
-    QLineEdit, 
+    QLabel,
+    QSpinBox,
+    QLineEdit,
     QMessageBox,
     QProgressDialog,
     QHBoxLayout,
@@ -34,12 +34,12 @@ plt.rcParams.update({
     'legend.fontsize': 9,
     'figure.autolayout': True
 })
-    
+
 from .stats_tab import StatsTab
 from .day_details_tab import DayDetailsTab
 from .warehouse_tab import WarehouseConfigTab
 
-from ..buisnes import Simulation, SimulationParams, PharmacyDayStatistics
+from ..business import Simulation, SimulationParams, PharmacyDayStatistics
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -55,12 +55,12 @@ class MainWindow(QMainWindow):
         # Основной контейнер
         main_widget = QWidget()
         main_layout = QVBoxLayout()
-        
+
         # Вкладки
         self.tabs = QTabWidget()
         self._init_simulation_tab()
         self._init_config_tab()
-        
+
         main_layout.addWidget(self.tabs)
         main_widget.setLayout(main_layout)
         self.setCentralWidget(main_widget)
@@ -72,27 +72,27 @@ class MainWindow(QMainWindow):
     def _init_simulation_tab(self):
         sim_tab = QWidget()
         layout = QVBoxLayout()
-        
+
         self.days_spin = QSpinBox()
         self.days_spin.setRange(10, 25)
-        
+
         self.couriers_spin = QSpinBox()
         self.couriers_spin.setRange(3, 9)
-        
+
         self.markup_edit = QLineEdit('25')
         self.markup_edit.setValidator(QDoubleValidator(0, 100, 2))
-        
+
         self.discount_edit = QLineEdit('5')
         self.discount_edit.setValidator(QDoubleValidator(0, 100, 2))
 
 
         self.base_orders = QSpinBox()
         self.base_orders.setRange(1, 100)
-        
+
         self.sensitivity = QLineEdit('5')
         self.sensitivity.setValidator(QDoubleValidator(0, 100, 2))
-        
-                
+
+
         control_panel = QGroupBox('Параметры моделирования')
         grid = QGridLayout()
 
@@ -120,28 +120,28 @@ class MainWindow(QMainWindow):
         grid.setHorizontalSpacing(15)  # Расстояние между колонками
 
         control_panel.setLayout(grid)
-                
+
         # Кнопки
         self.run_btn = QPushButton('▶️ Запустить')
         self.run_btn.clicked.connect(self.start_simulation)
-        
+
         # Визуализация
         self.stats_tab = StatsTab()
         self.details_tab = DayDetailsTab()
         results_tabs = QTabWidget()
         results_tabs.addTab(self.stats_tab, '📊 Графики')
         results_tabs.addTab(self.details_tab, '📅 Детализация')
-        
+
         # Итоги
         self.results_label = QLabel()
         self.results_label.setStyleSheet('font-size: 14px; padding: 10px;')
-        
+
         # Сборка layout
         layout.addWidget(control_panel)
         layout.addWidget(self.run_btn)
         layout.addWidget(results_tabs)
         layout.addWidget(self.results_label)
-        
+
         sim_tab.setLayout(layout)
         self.tabs.addTab(sim_tab, '📈 Моделирование')
 
@@ -165,12 +165,12 @@ class MainWindow(QMainWindow):
                 base_orders = self.base_orders.value(),
                 sensitivity = float(self.sensitivity.text()) / 100,
             )
-            
+
             medicines = self.config_tab.get_medicines_data()
             customers = self.config_tab.get_customers_data()
-            
+
             self.sim = Simulation(params, medicines, customers)
-            
+
             self.statistics = self.sim.run()
             self.update_visualization()
 
@@ -181,9 +181,9 @@ class MainWindow(QMainWindow):
     def update_visualization(self):
         if not self.sim:
             return
-        
+
         statistics = self.statistics
-            
+
         days = [s.day for s in statistics]
         profit = [s.profit for s in statistics]
         losses = [s.losses for s in statistics]
@@ -192,13 +192,13 @@ class MainWindow(QMainWindow):
             sum(1 for o in s.orders if o.is_delivered)
             for s in statistics
         ]
-        
+
         # Графики
         self.stats_tab.plot(days, profit, losses, orders, delivered)
-        
+
         # Детализация
         self.details_tab.update_days(statistics)
-        
+
         total = sum(statistics)
 
         # Итоговая статистика

@@ -1,22 +1,22 @@
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import (
-    QWidget, 
-    QTabWidget, 
-    QTableWidget, 
+    QWidget,
+    QTabWidget,
+    QTableWidget,
     QTableWidgetItem,
-    QVBoxLayout, 
+    QVBoxLayout,
     QSplitter,
 )
 
-from ..buisnes import PharmacyDayStatistics
+from ..business import PharmacyDayStatistics
 
 class DayDetailsTab(QWidget):
     day_changed = pyqtSignal(int)
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.splitter = QSplitter(Qt.Horizontal)
-        
+
         # Таблица дней
         self.days_table = QTableWidget()
         self.days_table.setColumnCount(5)
@@ -25,15 +25,15 @@ class DayDetailsTab(QWidget):
         ])
         self.days_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.days_table.itemSelectionChanged.connect(self._on_day_selected)
-        
+
         # Таблицы детализации
         self.details_tabs = QTabWidget()
         self._init_tables()
-        
+
         self.splitter.addWidget(self.days_table)
         self.splitter.addWidget(self.details_tabs)
         self.splitter.setSizes([400, 600])
-        
+
         layout = QVBoxLayout()
         layout.addWidget(self.splitter)
         self.setLayout(layout)
@@ -43,28 +43,28 @@ class DayDetailsTab(QWidget):
         self.orders_table = QTableWidget()
         self.orders_table.setColumnCount(6)
         self.orders_table.setHorizontalHeaderLabels([
-            'Клиент', 'Адрес', 'Тип', 'Статус', 'Сумма', 'Товары', 
+            'Клиент', 'Адрес', 'Тип', 'Статус', 'Сумма', 'Товары',
         ])
         self.orders_table.horizontalHeader().setStretchLastSection(True)
         self.orders_table.setSortingEnabled(True)
         self.orders_table.setEditTriggers(QTableWidget.NoEditTriggers)
-        
+
         # Таблица склада
         self.warehouse_table = QTableWidget()
         self.warehouse_table.setColumnCount(6)
         self.warehouse_table.setHorizontalHeaderLabels([
             'Лекарство', 'Партии', 'Поставки',
-            'Количество', 'Минимум', 'Закупки', 
+            'Количество', 'Минимум', 'Закупки',
         ])
         self.warehouse_table.setEditTriggers(QTableWidget.NoEditTriggers)
-        
+
         self.details_tabs.addTab(self.orders_table, "📦 Заказы")
         self.details_tabs.addTab(self.warehouse_table, "🏭 Склад")
 
     def update_days(self, stats: list[PharmacyDayStatistics]):
         self.days_table.setRowCount(len(stats))
         for row, day in enumerate(stats):
-            
+
             items = [
                 QTableWidgetItem(f"День {day.day}"),
                 QTableWidgetItem(f"{day.revenue:.0f}₽"),
@@ -72,7 +72,7 @@ class DayDetailsTab(QWidget):
                 QTableWidgetItem(f"{day.losses:.0f}₽"),
                 QTableWidgetItem(f"{day.margin:.1f}%")
             ]
-            
+
             for col, item in enumerate(items):
                 item.setTextAlignment(Qt.AlignCenter)
                 self.days_table.setItem(row, col, item)
@@ -94,7 +94,7 @@ class DayDetailsTab(QWidget):
             for col, cell in enumerate(cells):
                 cell.setFlags(cell.flags() ^ Qt.ItemIsEditable)
                 self.orders_table.setItem(row, col, cell)
-        
+
         # Склад
         self.warehouse_table.setRowCount(len(day_data.warehouse.medicines.items()))
         for row, (med, wm) in enumerate(day_data.warehouse.medicines.items()):
