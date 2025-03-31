@@ -13,8 +13,7 @@ class WarehouseConfigTab(QWidget):
     def __init__(self):
         super().__init__()
         self.tabs = QTabWidget()
-        
-        # Вкладка лекарств
+
         self.meds_tab = ConfigTab(
             9,
             [
@@ -25,8 +24,7 @@ class WarehouseConfigTab(QWidget):
             self.generate_medicines
         )
         self.meds_tab.generate_data()
-        
-        # Вкладка клиентов (только постоянные)
+
         self.customers_tab = ConfigTab(
             6,
             [
@@ -36,10 +34,10 @@ class WarehouseConfigTab(QWidget):
             self.generate_customers
         )
         self.customers_tab.generate_data()
-        
+
         self.tabs.addTab(self.meds_tab, "💊 Лекарства")
         self.tabs.addTab(self.customers_tab, "👥 Постоянные клиенты")
-        
+
         layout = QVBoxLayout()
         layout.addWidget(self.tabs)
         self.setLayout(layout)
@@ -47,7 +45,7 @@ class WarehouseConfigTab(QWidget):
     def generate_medicines(self, table, rows):
         types = ["Таблетки", "Спрей", "Мазь", "Капли"]
         groups = ["Сердечные", "Антибиотики", "Обезболивающие"]
-        
+
         table.setRowCount(rows)
         for row in range(rows):
             data = [
@@ -63,7 +61,7 @@ class WarehouseConfigTab(QWidget):
             ]
             for col, value in enumerate(data):
                 item = QTableWidgetItem(value)
-                if col in [7, 8]:  # Для числовых колонок
+                if col in [7, 8]:
                     item.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
                 table.setItem(row, col, item)
 
@@ -71,15 +69,15 @@ class WarehouseConfigTab(QWidget):
         streets = ["Ленина", "Гагарина", "Советская"]
         meds_data = self.meds_tab.get_data()
         med_names = [row[0] for row in meds_data if row]
-        
+
         table.setRowCount(rows)
         for row in range(rows):
             discount = "Да" if random.random() > 0.5 else "Нет"
             orders = ", ".join(
-                f"{random.choice(med_names)}:{random.randint(1,5)}" 
+                f"{random.choice(med_names)}:{random.randint(1,5)}"
                 for _ in range(random.randint(1,3))
             ) if med_names else ""
-            
+
             data = [
                 f"Постоянный {row+1}",
                 f"+7{random.randint(9000000000, 9999999999)}",
@@ -96,4 +94,3 @@ class WarehouseConfigTab(QWidget):
 
     def get_customers_data(self):
         return self.customers_tab.get_data()
-    

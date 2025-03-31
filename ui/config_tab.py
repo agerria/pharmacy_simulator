@@ -1,16 +1,16 @@
 import csv
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QWidget, 
-    QTableWidget, 
+    QWidget,
+    QTableWidget,
     QTableWidgetItem,
-    QVBoxLayout, 
-    QHBoxLayout, 
+    QVBoxLayout,
+    QHBoxLayout,
     QPushButton,
-    QLabel, 
-    QSpinBox, 
-    QFileDialog, 
-    QHeaderView, 
+    QLabel,
+    QSpinBox,
+    QFileDialog,
+    QHeaderView,
 )
 
 class ConfigTab(QWidget):
@@ -19,25 +19,22 @@ class ConfigTab(QWidget):
         self.columns = columns
         self.headers = headers
         self.generate_callback = generate_callback
-        
+
         self.table = QTableWidget()
         self.table.setColumnCount(columns)
         self.table.setHorizontalHeaderLabels(headers)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        # self.table.setEditTriggers(QTableWidget.NoEditTriggers)
-        
-        # Элементы управления
+
         self.rows_spin = QSpinBox()
         self.rows_spin.setRange(1, 100)
         self.rows_spin.setValue(20)
-        
+
         self.add_btn = QPushButton("＋")
         self.del_btn = QPushButton("🗑")
         self.load_btn = QPushButton("📂")
         self.save_btn = QPushButton("💾")
         self.generate_btn = QPushButton("🎲")
-        
-        # Layout
+
         control_layout = QHBoxLayout()
         control_layout.addWidget(QLabel("Строк:"))
         control_layout.addWidget(self.rows_spin)
@@ -47,13 +44,12 @@ class ConfigTab(QWidget):
         control_layout.addWidget(self.load_btn)
         control_layout.addWidget(self.save_btn)
         control_layout.addWidget(self.generate_btn)
-        
+
         main_layout = QVBoxLayout()
         main_layout.addLayout(control_layout)
         main_layout.addWidget(self.table)
         self.setLayout(main_layout)
-        
-        # Сигналы
+
         self.add_btn.clicked.connect(self.add_row)
         self.del_btn.clicked.connect(self.delete_row)
         self.load_btn.clicked.connect(self.load_csv)
@@ -88,7 +84,7 @@ class ConfigTab(QWidget):
                 writer = csv.writer(f)
                 for row in range(self.table.rowCount()):
                     writer.writerow([
-                        self.table.item(row, col).text().strip() 
+                        self.table.item(row, col).text().strip()
                         if self.table.item(row, col) else ""
                         for col in range(self.columns)
                     ])
@@ -99,7 +95,7 @@ class ConfigTab(QWidget):
 
     def get_data(self):
         return [
-            [self.table.item(row, col).text().strip() 
+            [self.table.item(row, col).text().strip()
              if self.table.item(row, col) else ""
              for col in range(self.columns)]
             for row in range(self.table.rowCount())
@@ -110,10 +106,9 @@ class ConfigTab(QWidget):
 
     def _get_file_save(self):
         return QFileDialog.getSaveFileName(self, "Сохранить CSV", "", "CSV Files (*.csv)")[0]
-    
+
     def _setup_validators(self):
-        # Для колонок с числовыми значениями
-        numeric_columns = [1, 4, 7, 8]  # Пример для лекарств
+        numeric_columns = [1, 4, 7, 8]
         for col in numeric_columns:
             for row in range(self.table.rowCount()):
                 item = self.table.item(row, col)

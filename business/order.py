@@ -1,19 +1,19 @@
 from enum import Enum
-from .medicine import Medicine, WarehouseMedicineOrder
 from typing import Self
-from .customer import Customer
 
-from enum import Enum
+from .customer import Customer
+from .medicine import Medicine, WarehouseMedicineOrder
+
 
 class OrderType(str, Enum):
-    REGULAR     = "🔄 Регулярный"        
-    RANDOM      = "🎲 Случайный"         
+    REGULAR     = "🔄 Регулярный"
+    RANDOM      = "🎲 Случайный"
 
 class OrderStatus(str, Enum):
-    DELIVERED       = "✅ Доставлен"          
-    PARTIALLY       = "🟡 Доставлен частично" 
-    NO_MEDICINES    = "❌ Нет товара"         
-    NO_COURIER      = "🚫 Нет курьеров"       
+    DELIVERED       = "✅ Доставлен"
+    PARTIALLY       = "🟡 Доставлен частично"
+    NO_MEDICINES    = "❌ Нет товара"
+    NO_COURIER      = "🚫 Нет курьеров"
 
 class Order:
     def __init__(self, customer : Customer, medicines : dict[Medicine, int], order_type : OrderType):
@@ -38,10 +38,10 @@ class Order:
             customer.regular_medicines,
             OrderType.REGULAR
         )
-    
+
     def __str__(self):
         return f'<Order: {self.customer}\t| {self.status.value}\t| {self.type.value}\t| {self.requested_medicines}>'
-    
+
     def to_row(self):
         med_count = [
             f'{med.name}: {count}'
@@ -59,7 +59,7 @@ class Order:
     @property
     def is_delivered(self):
         return self.status in (OrderStatus.DELIVERED, OrderStatus.PARTIALLY)
-    
+
     @property
     def is_regular(self):
         return self.type == OrderType.REGULAR

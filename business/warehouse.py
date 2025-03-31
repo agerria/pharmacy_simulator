@@ -37,7 +37,6 @@ class Warehouse(IDaily):
             losses += warehouse_medicine.end_day()
 
         return losses
-    
 
     def to_table(self):
         rows = []

@@ -1,29 +1,27 @@
-# Часть 1: Импорты и настройки
-
-
 from PyQt5.QtWidgets import (
-    QApplication,
     QMainWindow,
     QWidget,
     QTabWidget,
     QVBoxLayout,
-    QFormLayout,
     QGroupBox,
     QPushButton,
     QLabel,
     QSpinBox,
     QLineEdit,
-    QMessageBox,
-    QProgressDialog,
-    QHBoxLayout,
     QGridLayout,
 )
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QDoubleValidator, QIntValidator
+from PyQt5.QtGui import QDoubleValidator
 
 import matplotlib
 import matplotlib.pyplot as plt
-# Общие настройки для matplotlib
+
+from .day_details_tab import DayDetailsTab
+from .stats_tab import StatsTab
+from .warehouse_tab import WarehouseConfigTab
+
+from ..business import Simulation, SimulationParams, PharmacyDayStatistics
+
+
 matplotlib.use('Qt5Agg')
 plt.rcParams.update({
     'font.size': 10,
@@ -34,12 +32,6 @@ plt.rcParams.update({
     'legend.fontsize': 9,
     'figure.autolayout': True
 })
-
-from .stats_tab import StatsTab
-from .day_details_tab import DayDetailsTab
-from .warehouse_tab import WarehouseConfigTab
-
-from ..business import Simulation, SimulationParams, PharmacyDayStatistics
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -52,11 +44,9 @@ class MainWindow(QMainWindow):
         self.statistics: list[PharmacyDayStatistics] = []
 
     def init_ui(self):
-        # Основной контейнер
         main_widget = QWidget()
         main_layout = QVBoxLayout()
 
-        # Вкладки
         self.tabs = QTabWidget()
         self._init_simulation_tab()
         self._init_config_tab()
@@ -67,7 +57,7 @@ class MainWindow(QMainWindow):
 
     def _init_config_tab(self):
         self.config_tab = WarehouseConfigTab()
-        self.tabs.addTab(self.config_tab, '⚙️ Конфигурация')
+        self.tabs.addTab(self.config_tab, '\u2699 Конфигурация')
 
     def _init_simulation_tab(self):
         sim_tab = QWidget()
@@ -85,24 +75,20 @@ class MainWindow(QMainWindow):
         self.discount_edit = QLineEdit('5')
         self.discount_edit.setValidator(QDoubleValidator(0, 100, 2))
 
-
         self.base_orders = QSpinBox()
         self.base_orders.setRange(1, 100)
 
         self.sensitivity = QLineEdit('5')
         self.sensitivity.setValidator(QDoubleValidator(0, 100, 2))
 
-
         control_panel = QGroupBox('Параметры моделирования')
         grid = QGridLayout()
 
-        # Левая колонка (столбцы 0 и 1)
         grid.addWidget(QLabel('Дни моделирования:'), 0, 0)
         grid.addWidget(self.days_spin, 0, 1)
         grid.addWidget(QLabel('Количество курьеров:'), 1, 0)
         grid.addWidget(self.couriers_spin, 1, 1)
 
-        # Правая колонка (столбцы 2 и 3)
         grid.addWidget(QLabel('Розничная наценка (%):'), 0, 2)
         grid.addWidget(self.markup_edit, 0, 3)
         grid.addWidget(QLabel('Скидка по карте (%):'), 1, 2)
@@ -113,30 +99,25 @@ class MainWindow(QMainWindow):
         grid.addWidget(QLabel('Чувствительность наценки (%):'), 1, 4)
         grid.addWidget(self.sensitivity, 1, 5)
 
-        # Настройка растяжения для адаптивного интерфейса
-        grid.setColumnStretch(1, 1)  # Растягиваем поля ввода левой колонки
-        grid.setColumnStretch(3, 1)  # Растягиваем поля ввода правой колонки
-        grid.setColumnStretch(5, 1)  # Растягиваем поля ввода правой колонки
-        grid.setHorizontalSpacing(15)  # Расстояние между колонками
+        grid.setColumnStretch(1, 1)
+        grid.setColumnStretch(3, 1)
+        grid.setColumnStretch(5, 1)
+        grid.setHorizontalSpacing(15)
 
         control_panel.setLayout(grid)
 
-        # Кнопки
-        self.run_btn = QPushButton('▶️ Запустить')
+        self.run_btn = QPushButton('\u25B6 Запустить')
         self.run_btn.clicked.connect(self.start_simulation)
 
-        # Визуализация
         self.stats_tab = StatsTab()
         self.details_tab = DayDetailsTab()
         results_tabs = QTabWidget()
         results_tabs.addTab(self.stats_tab, '📊 Графики')
         results_tabs.addTab(self.details_tab, '📅 Детализация')
 
-        # Итоги
         self.results_label = QLabel()
         self.results_label.setStyleSheet('font-size: 14px; padding: 10px;')
 
-        # Сборка layout
         layout.addWidget(control_panel)
         layout.addWidget(self.run_btn)
         layout.addWidget(results_tabs)
@@ -145,18 +126,10 @@ class MainWindow(QMainWindow):
         sim_tab.setLayout(layout)
         self.tabs.addTab(sim_tab, '📈 Моделирование')
 
-        # Сигналы
         self.details_tab.day_changed.connect(self.show_day_details)
 
     def start_simulation(self):
         try:
-            params = {
-                'days': self.days_spin.value(),
-                'couriers': self.couriers_spin.value(),
-                'markup': float(self.markup_edit.text()),
-                'discount_card': float(self.discount_edit.text())
-            }
-
             params = SimulationParams(
                 days = self.days_spin.value(),
                 couriers = self.couriers_spin.value(),
@@ -176,7 +149,6 @@ class MainWindow(QMainWindow):
 
         except Exception as e:
             raise e
-            QMessageBox.critical(self, 'Ошибка', f'Ошибка выполнения: {str(e)}')
 
     def update_visualization(self):
         if not self.sim:
@@ -193,15 +165,12 @@ class MainWindow(QMainWindow):
             for s in statistics
         ]
 
-        # Графики
         self.stats_tab.plot(days, profit, losses, orders, delivered)
 
-        # Детализация
         self.details_tab.update_days(statistics)
 
         total = sum(statistics)
 
-        # Итоговая статистика
         text = (
             f'📈 Общий доход:      {total.revenue:.0f}₽\n'
             f'💰 Чистая прибыль:  {total.profit:.0f}₽\n'

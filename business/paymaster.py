@@ -1,5 +1,7 @@
 from pydantic import BaseModel
+
 from .order import Order, OrderType
+
 
 class PayMaster(BaseModel):
     retail_margin       : float

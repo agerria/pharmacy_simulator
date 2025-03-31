@@ -8,16 +8,13 @@ class HashableMixin:
     Миксин для автоматической генерации __hash__ и __eq__ на основе полей модели.
     """
     def __hash__(self) -> int:
-        # Получаем все поля модели и их значения
         fields = self.__dict__
-        # Создаем кортеж из значений полей
         field_values = tuple(fields[field] for field in sorted(fields))
         return hash(field_values)
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, self.__class__):
             return False
-        # Сравниваем все поля модели
         return self.__dict__ == other.__dict__
 
 class MedicineType(str, Enum):
@@ -69,7 +66,7 @@ class BatchOfMedicines(IDaily):
     @property
     def is_empty(self) -> bool:
         return self.count <= 0
-    
+
     def __str__(self):
         return f'{self.count}: {self.expiration_days} дн.'
 
@@ -142,7 +139,7 @@ class WarehouseMedicine(IDaily):
 
     def str_batches(self) -> str:
         return ', '.join(map(str, self.batches))
-    
+
     def str_awiting(self) -> str:
         if not self.awaiting_batch:
             return ''

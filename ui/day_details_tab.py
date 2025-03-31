@@ -17,7 +17,6 @@ class DayDetailsTab(QWidget):
         super().__init__(parent)
         self.splitter = QSplitter(Qt.Horizontal)
 
-        # Таблица дней
         self.days_table = QTableWidget()
         self.days_table.setColumnCount(5)
         self.days_table.setHorizontalHeaderLabels([
@@ -26,7 +25,6 @@ class DayDetailsTab(QWidget):
         self.days_table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.days_table.itemSelectionChanged.connect(self._on_day_selected)
 
-        # Таблицы детализации
         self.details_tabs = QTabWidget()
         self._init_tables()
 
@@ -39,7 +37,6 @@ class DayDetailsTab(QWidget):
         self.setLayout(layout)
 
     def _init_tables(self):
-        # Таблица заказов
         self.orders_table = QTableWidget()
         self.orders_table.setColumnCount(6)
         self.orders_table.setHorizontalHeaderLabels([
@@ -49,7 +46,6 @@ class DayDetailsTab(QWidget):
         self.orders_table.setSortingEnabled(True)
         self.orders_table.setEditTriggers(QTableWidget.NoEditTriggers)
 
-        # Таблица склада
         self.warehouse_table = QTableWidget()
         self.warehouse_table.setColumnCount(6)
         self.warehouse_table.setHorizontalHeaderLabels([
@@ -78,7 +74,6 @@ class DayDetailsTab(QWidget):
                 self.days_table.setItem(row, col, item)
 
     def update_day_details(self, day_data: PharmacyDayStatistics):
-        # Заказы
         valid_orders = [o for o in day_data.orders]
         self.orders_table.setRowCount(len(valid_orders))
 
@@ -95,7 +90,6 @@ class DayDetailsTab(QWidget):
                 cell.setFlags(cell.flags() ^ Qt.ItemIsEditable)
                 self.orders_table.setItem(row, col, cell)
 
-        # Склад
         self.warehouse_table.setRowCount(len(day_data.warehouse.medicines.items()))
         for row, (med, wm) in enumerate(day_data.warehouse.medicines.items()):
             cells = [

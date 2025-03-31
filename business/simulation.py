@@ -1,9 +1,7 @@
-import random
 import numpy as np
-
+import random
 
 from pydantic import BaseModel
-
 
 from .base import IDaily
 from .customer import Customer
@@ -12,7 +10,6 @@ from .order import Order, OrderType
 from .paymaster import PayMaster
 from .pharmacy import Pharmacy, PharmacyDayStatistics
 from .warehouse import Warehouse
-from .mock import MEDICINES_MOCK, CUSTOMERS_MOCK
 
 
 class SimulationParams(BaseModel):
@@ -28,7 +25,6 @@ class SimulationParams(BaseModel):
         return self.base_orders / (1 + self.sensitivity * self.retail_margin)
 
 
-
 class Simulation:
     def __init__(self, params : SimulationParams, medicines_data, customers_data):
         self.params = params
@@ -40,7 +36,6 @@ class Simulation:
             regular_customers = self.parse_customers(customers_data),
             couriers = params.couriers,
         )
-
 
     def generate_order(self):
         medicines = self.pharmacy.warehouse.medicines
@@ -62,7 +57,6 @@ class Simulation:
             OrderType.RANDOM
         )
 
-
     def generate_orders(self):
         num_orders = np.random.poisson(self.params.order_intensity)
         orders = [
@@ -81,7 +75,6 @@ class Simulation:
             )
 
         return statistics
-    
 
     def parse_customers(self, customers_data: list[list]) -> list[Customer]:
         customers = []
@@ -107,7 +100,6 @@ class Simulation:
             customers.append(c)
         return customers
 
-
     def parse_medicines(self, medicines_data: list[list]) -> Warehouse:
         medicines = {}
         medicines_by_name = {}
@@ -128,3 +120,4 @@ class Simulation:
 
         warehouse = Warehouse(medicines)
         return warehouse, medicines_by_name
+    
