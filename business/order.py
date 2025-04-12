@@ -9,11 +9,13 @@ class OrderType(str, Enum):
     REGULAR     = "🔄 Регулярный"
     RANDOM      = "🎲 Случайный"
 
+
 class OrderStatus(str, Enum):
     DELIVERED       = "✅ Доставлен"
     PARTIALLY       = "🟡 Доставлен частично"
     NO_MEDICINES    = "❌ Нет товара"
     NO_COURIER      = "🚫 Нет курьеров"
+
 
 class Order:
     def __init__(self, customer : Customer, medicines : dict[Medicine, int], order_type : OrderType):

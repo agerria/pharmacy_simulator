@@ -1,7 +1,10 @@
-from pydantic import BaseModel
-from enum import Enum
-from .base import IDaily
 import random
+
+from enum import Enum
+from pydantic import BaseModel
+
+from .base import IDaily
+
 
 class HashableMixin:
     """
@@ -17,11 +20,13 @@ class HashableMixin:
             return False
         return self.__dict__ == other.__dict__
 
+
 class MedicineType(str, Enum):
     DROPS       = "Капли"
     SPRAY       = "Спрей"
     OINTMENT    = "Мазь"
     TABLETS     = "Таблетки"
+
 
 class MedicineGroup(str, Enum):
     ANTIBIOTIC  = "Антибиотики"
@@ -38,6 +43,7 @@ class Medicine(HashableMixin, BaseModel):
     expiration_days     : int
     purchase_quantity   : int
     min_quantity        : int
+
 
 class BatchOfMedicines(IDaily):
     def __init__(self, count, expiration_days):
@@ -70,9 +76,11 @@ class BatchOfMedicines(IDaily):
     def __str__(self):
         return f'{self.count}: {self.expiration_days} дн.'
 
+
 class WarehouseMedicineOrder(BaseModel):
     count : int = 0
     cost : float = 0
+
 
 class WarehouseMedicine(IDaily):
     def __init__(self, medicine : Medicine, count):

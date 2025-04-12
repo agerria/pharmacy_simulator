@@ -8,6 +8,7 @@ from .order import Order
 from .paymaster import PayMaster
 from .warehouse import Warehouse
 
+
 class PharmacyDayStatistics(BaseModel):
     day         : int = 0
     revenue     : float = .0

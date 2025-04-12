@@ -1,8 +1,13 @@
+import matplotlib
+import matplotlib.pyplot as plt
+
+from PyQt5.QtGui import QDoubleValidator
 from PyQt5.QtWidgets import (
     QMainWindow,
     QWidget,
     QTabWidget,
     QVBoxLayout,
+    QHBoxLayout,
     QGroupBox,
     QPushButton,
     QLabel,
@@ -10,10 +15,6 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QGridLayout,
 )
-from PyQt5.QtGui import QDoubleValidator
-
-import matplotlib
-import matplotlib.pyplot as plt
 
 from .day_details_tab import DayDetailsTab
 from .stats_tab import StatsTab
@@ -33,6 +34,7 @@ plt.rcParams.update({
     'figure.autolayout': True
 })
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -50,6 +52,8 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget()
         self._init_simulation_tab()
         self._init_config_tab()
+
+        self._unlock_simulation()
 
         main_layout.addWidget(self.tabs)
         main_widget.setLayout(main_layout)
@@ -81,7 +85,8 @@ class MainWindow(QMainWindow):
         self.sensitivity = QLineEdit('5')
         self.sensitivity.setValidator(QDoubleValidator(0, 100, 2))
 
-        control_panel = QGroupBox('Параметры моделирования')
+        # ------------- Параметры ------------
+        self.control_panel = QGroupBox('Параметры моделирования')
         grid = QGridLayout()
 
         grid.addWidget(QLabel('Дни моделирования:'), 0, 0)
@@ -104,11 +109,41 @@ class MainWindow(QMainWindow):
         grid.setColumnStretch(5, 1)
         grid.setHorizontalSpacing(15)
 
-        control_panel.setLayout(grid)
+        self.control_panel.setLayout(grid)
+
+        # ------------- Кнопки ------------
+        btn_panel = QGroupBox()
+        btn_layout = QHBoxLayout()
 
         self.run_btn = QPushButton('\u25B6 Запустить')
         self.run_btn.clicked.connect(self.start_simulation)
 
+        self.next_btn = QPushButton('Шаг вперёд')
+        self.next_btn.clicked.connect(self.next_day)
+
+        self.complete_btn = QPushButton('До конца')
+        self.complete_btn.clicked.connect(self.complete_simulation)
+
+        self.restart_btn = QPushButton('Начать заново')
+        self.restart_btn.clicked.connect(self.restart_simulation)
+
+        self.exit_btn = QPushButton('Выход')
+        self.exit_btn.clicked.connect(self.close)
+
+        btn_layout.addWidget(self.run_btn)
+        btn_layout.addWidget(self.next_btn)
+        btn_layout.addWidget(self.complete_btn)
+        btn_layout.addWidget(self.restart_btn)
+        btn_layout.addWidget(self.exit_btn)
+
+        stretch_factors = [5, 1, 3, 5, 3]
+        for idx, factor in enumerate(stretch_factors):
+            btn_layout.setStretch(idx, factor)
+
+        btn_panel.setLayout(btn_layout)
+
+
+        # ------------- Результаты ------------
         self.stats_tab = StatsTab()
         self.details_tab = DayDetailsTab()
         results_tabs = QTabWidget()
@@ -118,8 +153,9 @@ class MainWindow(QMainWindow):
         self.results_label = QLabel()
         self.results_label.setStyleSheet('font-size: 14px; padding: 10px;')
 
-        layout.addWidget(control_panel)
-        layout.addWidget(self.run_btn)
+
+        layout.addWidget(self.control_panel)
+        layout.addWidget(btn_panel)
         layout.addWidget(results_tabs)
         layout.addWidget(self.results_label)
 
@@ -128,33 +164,66 @@ class MainWindow(QMainWindow):
 
         self.details_tab.day_changed.connect(self.show_day_details)
 
+    def _lock_simulation(self):
+        self.control_panel.setEnabled(False)
+        self.config_tab.meds_tab.setEnabled(False)
+        self.config_tab.customers_tab.setEnabled(False)
+
+        self.run_btn.setEnabled(False)
+        self.next_btn.setEnabled(True)
+        self.complete_btn.setEnabled(True)
+        self.restart_btn.setEnabled(True)
+
+    def _unlock_simulation(self):
+        self.control_panel.setEnabled(True)
+        self.config_tab.meds_tab.setEnabled(True)
+        self.config_tab.customers_tab.setEnabled(True)
+
+        self.run_btn.setEnabled(True)
+        self.next_btn.setEnabled(False)
+        self.complete_btn.setEnabled(False)
+        self.restart_btn.setEnabled(False)
+
+    def next_day(self):
+        self.sim.next_day()
+        self.update_visualization()
+
+    def prev_day(self):
+        print('prev')
+
+    def restart_simulation(self):
+        self._unlock_simulation()
+
+    def complete_simulation(self):
+        self.sim.complete()
+        self.update_visualization()
+
     def start_simulation(self):
-        try:
-            params = SimulationParams(
-                days = self.days_spin.value(),
-                couriers = self.couriers_spin.value(),
-                retail_margin = float(self.markup_edit.text()) / 100,
-                card_discount = float(self.discount_edit.text()) / 100,
-                base_orders = self.base_orders.value(),
-                sensitivity = float(self.sensitivity.text()) / 100,
-            )
+        self._lock_simulation()
+        params = SimulationParams(
+            days = self.days_spin.value(),
+            couriers = self.couriers_spin.value(),
+            retail_margin = float(self.markup_edit.text()) / 100,
+            card_discount = float(self.discount_edit.text()) / 100,
+            base_orders = self.base_orders.value(),
+            sensitivity = float(self.sensitivity.text()) / 100,
+        )
 
-            medicines = self.config_tab.get_medicines_data()
-            customers = self.config_tab.get_customers_data()
+        medicines = self.config_tab.get_medicines_data()
+        customers = self.config_tab.get_customers_data()
 
-            self.sim = Simulation(params, medicines, customers)
-
-            self.statistics = self.sim.run()
-            self.update_visualization()
-
-        except Exception as e:
-            raise e
+        self.sim = Simulation(params, medicines, customers)
+        self.update_visualization()
 
     def update_visualization(self):
         if not self.sim:
             return
 
-        statistics = self.statistics
+        if self.sim.is_complete:
+            self.next_btn.setEnabled(False)
+            self.complete_btn.setEnabled(False)
+
+        statistics = self.sim.statistics
 
         days = [s.day for s in statistics]
         profit = [s.profit for s in statistics]
@@ -170,16 +239,16 @@ class MainWindow(QMainWindow):
         self.details_tab.update_days(statistics)
 
         total = sum(statistics)
-
+        if total == 0:
+            return
         text = (
             f'📈 Общий доход:      {total.revenue:.0f}₽\n'
             f'💰 Чистая прибыль:  {total.profit:.0f}₽\n'
             f'📉 Потери:                 {total.losses:.0f}₽\n'
             f'🎯 Маржинальность: {total.margin:.1f}%\n'
-            # f'🚚 Средняя загрузка курьеров: {sum(len(c.orders) for c in self.sim.couriers) / self.sim.couriers_cnt:.1f}'
         )
         self.results_label.setText(text)
 
     def show_day_details(self, day_idx):
-        if self.sim and 0 <= day_idx < len(self.statistics):
-            self.details_tab.update_day_details(self.statistics[day_idx])
+        if self.sim and 0 <= day_idx < len(self.sim.statistics):
+            self.details_tab.update_day_details(self.sim.statistics[day_idx])

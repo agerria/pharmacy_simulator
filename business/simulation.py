@@ -3,7 +3,6 @@ import random
 
 from pydantic import BaseModel
 
-from .base import IDaily
 from .customer import Customer
 from .medicine import Medicine, MedicineGroup, MedicineType
 from .order import Order, OrderType
@@ -37,6 +36,9 @@ class Simulation:
             couriers = params.couriers,
         )
 
+        self.statistics: list[PharmacyDayStatistics] = []
+        self.current_day = 1
+
     def generate_order(self):
         medicines = self.pharmacy.warehouse.medicines
         num_items = random.randint(1, 5)
@@ -66,15 +68,22 @@ class Simulation:
         return orders
 
 
-    def run(self):
-        statistics: list[PharmacyDayStatistics] = []
-        for day in range(1, self.params.days + 1):
-            orders = self.generate_orders()
-            statistics.append(
-                self.pharmacy.process_day(day, orders)
-            )
+    def next_day(self):
+        orders = self.generate_orders()
+        self.statistics.append(
+            self.pharmacy.process_day(self.current_day, orders)
+        )
+        self.current_day += 1
 
-        return statistics
+    def complete(self):
+        while not self.is_complete:
+            self.next_day()
+
+    def run(self):
+        for day in range(1, self.params.days + 1):
+            self.next_day()
+
+        return self.statistics
 
     def parse_customers(self, customers_data: list[list]) -> list[Customer]:
         customers = []
@@ -120,4 +129,7 @@ class Simulation:
 
         warehouse = Warehouse(medicines)
         return warehouse, medicines_by_name
-    
+
+    @property
+    def is_complete(self):
+        return self.current_day > self.params.days

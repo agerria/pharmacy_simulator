@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (
 
 from ..business import PharmacyDayStatistics
 
+
 class DayDetailsTab(QWidget):
     day_changed = pyqtSignal(int)
 

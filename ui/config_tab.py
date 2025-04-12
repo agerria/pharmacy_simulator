@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (
     QHeaderView,
 )
 
+
 class ConfigTab(QWidget):
     def __init__(self, columns, headers, generate_callback=None):
         super().__init__()

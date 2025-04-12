@@ -2,6 +2,7 @@ from .base import IDaily
 from .medicine import Medicine, WarehouseMedicine, WarehouseMedicineOrder
 from .order import Order, OrderStatus
 
+
 class Warehouse(IDaily):
     def __init__(self, medicines_count : dict[Medicine, int]):
         self.medicines: dict[Medicine, WarehouseMedicine] = {

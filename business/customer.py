@@ -1,7 +1,10 @@
-from pydantic import BaseModel
-from .medicine import Medicine
 import random
+
 from typing import Self
+from pydantic import BaseModel
+
+from .medicine import Medicine
+
 
 RND_STREETS = ["Ленина", "Гагарина", "Советская"]
 
