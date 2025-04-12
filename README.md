@@ -16,3 +16,9 @@
 ## Установка
 ```bash
 pip install pydantic numpy PyQt5 matplotlib
+```
+
+## Запуск
+```bash
+python -m pharmacy_simulator
+```
